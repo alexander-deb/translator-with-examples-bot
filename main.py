@@ -37,44 +37,70 @@ def start(message):
 @bot.callback_query_handler(func=lambda call:True)
 def query_handler(call):
     global flag
-    if flag:
-        bot.answer_callback_query(callback_query_id=call.id, text=f'You succesfully changed second language to {call.data}')
-        second_language = call.data[2:]
-        with shelve.open('assets/Mods') as file:
-            file[str(call.from_user.id)] = [file[str(call.from_user.id)][0], second_language]
-    else:
-        bot.answer_callback_query(callback_query_id=call.id, text=f'You succesfully changed first language to {call.data}')
-        first_language = call.data[2:]
-        with shelve.open('assets/Mods') as file:
-            file[str(call.from_user.id)] = [first_language, file[str(call.from_user.id)][1]]
+    with shelve.open('assets/Mods') as file:
+        if flag:
+            bot.answer_callback_query(callback_query_id=call.id, text=f'You succesfully changed second language to {call.data}')
+            second_language = call.data[2:]
+            with shelve.open('assets/Mods') as file:
+                file[str(call.from_user.id)] = [file[str(call.from_user.id)][0], second_language]
+        else:
+            bot.answer_callback_query(callback_query_id=call.id, text=f'You succesfully changed first language to {call.data}')
+            first_language = call.data[2:]
+            with shelve.open('assets/Mods') as file:
+                file[str(call.from_user.id)] = [first_language, file[str(call.from_user.id)][1]]
+        
+
 
 
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
 
 
-@bot.message_handler(commands=['change_first_lang'])
+@bot.message_handler(commands=['from_language'])
 def change_first_lang(message):
     global list_of_languages, flag
     markup = telebot.types.InlineKeyboardMarkup()
-    for text in list_of_languages:
-        button = telebot.types.InlineKeyboardButton(text=text, callback_data=text)
-        markup.add(button)
+
+    with shelve.open('assets/Mods') as file:
+        for text in list_of_languages:
+            if text[2:] not in file[str(message.from_user.id)]:
+                button = telebot.types.InlineKeyboardButton(text=text, callback_data=text)
+                markup.add(button)
     bot.send_message(chat_id=message.chat.id, text='Choose language from this list:', reply_markup=markup)
     bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     flag = False
 
 
-@bot.message_handler(commands=['change_second_lang'])
-def change_first_lang(message):
+@bot.message_handler(commands=['into_language'])
+def change_second_lang(message):
     global list_of_languages, flag
     markup = telebot.types.InlineKeyboardMarkup()
-    for text in list_of_languages:
-        button = telebot.types.InlineKeyboardButton(text=text, callback_data=text)
-        markup.add(button)
+    with shelve.open('assets/Mods') as file:
+        for text in list_of_languages:
+            if text[2:] not in file[str(message.from_user.id)]:
+                button = telebot.types.InlineKeyboardButton(text=text, callback_data=text)
+                markup.add(button)
     bot.send_message(chat_id=message.chat.id, text='Choose language from this list:', reply_markup=markup)
     bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-
     flag = True
+
+@bot.message_handler(commands=['exchange'])
+def exchange(message):
+    with shelve.open('assets/Mods') as file:
+        file[str(message.from_user.id)] = [file[str(message.from_user.id)][1], file[str(message.from_user.id)][0]]
+    bot.delete_message(
+        chat_id=message.from_user.id,
+        message_id=message.message_id
+    )
+    bot.send_message(
+        chat_id=message.from_user.id,
+        text='Languages succesfully exchanged!'
+    )
+    with shelve.open('assets/Mods') as file:
+        bot.send_message(
+            chat_id=message.from_user.id,
+            text=f'Selected languages:\nFrom {file[str(message.from_user.id)][0]}\nInto {file[str(message.from_user.id)][1]}'
+        )
+
 
 
 @bot.message_handler(content_types=["text"])
