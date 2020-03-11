@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from config import TG_TOKEN
 
 TG_TOKEN = os.getenv('TG_TOKEN')
-
+TG_TOKEN = '1015244734:AAEG-74svKY4Lz7TRXwf5cgYa_olEN4RuCg'
 bot = telebot.TeleBot(TG_TOKEN)
 
 flag = False
