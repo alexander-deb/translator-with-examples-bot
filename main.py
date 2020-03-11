@@ -4,7 +4,6 @@ import telegram
 import requests
 import os
 from bs4 import BeautifulSoup
-from config import TG_TOKEN
 
 TG_TOKEN = os.getenv('TG_TOKEN')
 TG_TOKEN = '1015244734:AAEG-74svKY4Lz7TRXwf5cgYa_olEN4RuCg'
