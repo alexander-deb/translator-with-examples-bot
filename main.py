@@ -6,7 +6,7 @@ import os
 from bs4 import BeautifulSoup
 
 TG_TOKEN = os.getenv('TG_TOKEN')
-TG_TOKEN = '1015244734:AAEG-74svKY4Lz7TRXwf5cgYa_olEN4RuCg'
+
 bot = telebot.TeleBot(TG_TOKEN)
 
 flag = False
@@ -28,9 +28,9 @@ list_of_languages = [
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(chat_id=message.chat.id, text='Change languages')
+    bot.send_message(chat_id=message.chat.id, text='Choose languages. Press /from_language and then /into_language.')
     with shelve.open('assets/Mods') as file:
-        file[str(message.from_user.id)] = ['', '']
+        file[str(message.from_user.id)] = ['not choosen', 'not choosen']
 
 
 
@@ -48,7 +48,7 @@ def query_handler(call):
             first_language = call.data[2:]
             with shelve.open('assets/Mods') as file:
                 file[str(call.from_user.id)] = [first_language, file[str(call.from_user.id)][1]]
-        
+
 
 
 
@@ -105,13 +105,30 @@ def exchange(message):
 
 @bot.message_handler(content_types=["text"])
 def send_message(message):
-    text = translate_message(message)
+    with shelve.open('assets/Mods') as file:
+        if 'not choosen' not in file[str(message.from_user.id)]:
+            text = translate_message(message)
+            bot.send_message(
+                chat_id=message.from_user.id,
+                text=text,
+                parse_mode=telegram.ParseMode.MARKDOWN
+            )
+        else:
+            if file[str(message.from_user.id)][0] == 'not choosen':
+                text = 'Please, choose language you want to translate FROM. Press /from_language'
+                bot.send_message(
+                    chat_id=message.from_user.id,
+                    text=text
+                )
+            if file[str(message.from_user.id)][1] == 'not choosen':
+                text = 'Please, choose language you want to translate INTO. Press /into_language'
+                bot.send_message(
+                    chat_id=message.from_user.id,
+                    text=text
+                )
 
-    bot.send_message(
-        chat_id=message.from_user.id,
-        text=text,
-        parse_mode=telegram.ParseMode.MARKDOWN
-    )
+
+
 
 
 
